@@ -7,7 +7,10 @@ x_page_politica = "https://x.com/search?q=politica&src=typed_query&f=top"
 
 # .env
 load_dotenv()
-username = os.getenv("EMAIL")
+email = os.getenv("EMAIL")
 password = os.getenv("PASSWORD")
+username = os.getenv("USERNAME")
+
+
 
 
