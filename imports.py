@@ -8,6 +8,6 @@ import time
 from dotenv import load_dotenv
 import os
 import requests
+import pandas as pd
 
-# .venv\Scripts\activate
-# pip install -r requirements.txt
+# pip freeze > requirements.txt
