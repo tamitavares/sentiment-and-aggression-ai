@@ -19,35 +19,64 @@ write_data(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/di
 # Entrar
 click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button", locator_type=By.XPATH)
 
-######################################################################################## DATA ########################################################################################
+######################################################################################## DATA FUTEBOL ########################################################################################
 
 driver.maximize_window()
 driver.execute_script("document.body.style.zoom='70%'")
 time.sleep(10)
 
 
-df_tweets = pd.DataFrame(columns=["Tipo", "Texto"])
+df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
 
-max_iteracoes = 5 
+max_iteracoes = 2000 
 count = 0  
 
 while count < max_iteracoes:
     print(f"Processando tweet {count + 1} de {max_iteracoes}")
 
     find_tweet(driver, count)
-    df_tweets = extract_tweet(driver, df_tweets)
+    df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
 
-    print_dataframe(df_tweets)
+    print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
 
     # Volta para a timeline (clica no botão "Back")
     click_element(
         driver,
-        locator='//*[@aria-label="Back"]',  # XPath para o botão "Back"
+        locator='//*[@aria-label="Back"]', 
         locator_type=By.XPATH
     )
-
-    # Aguarda o carregamento da timeline
     time.sleep(3)
-
-    # Incrementa o contador para processar o próximo tweet
+    driver.execute_script("window.scrollBy(0, 1000);")
+    time.sleep(3)
     count += 1
+
+# ######################################################################################## DATA POLITICA ########################################################################################
+
+# open_page(x_page_politica)
+
+# driver.maximize_window()
+# driver.execute_script("document.body.style.zoom='70%'")
+# time.sleep(10)
+
+
+# df_tweets_politica = pd.DataFrame(columns=["Tipo", "Texto"])
+
+# max_iteracoes = 3000 
+# count = 0  
+
+# while count < max_iteracoes:
+#     print(f"Processando tweet {count + 1} de {max_iteracoes}")
+
+#     find_tweet(driver, count)
+#     df_tweets_politica = extract_tweet(driver, df_tweets_politica)
+
+#     print_dataframe(df_tweets_politica)
+
+#     # Volta para a timeline (clica no botão "Back")
+#     click_element(
+#         driver,
+#         locator='//*[@aria-label="Back"]', 
+#         locator_type=By.XPATH
+#     )
+#     time.sleep(3)
+#     count += 1
