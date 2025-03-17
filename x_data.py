@@ -26,38 +26,60 @@ time.sleep(10)
 
 df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
 
-max_iteracoes = 50 
+max_iteracoes = 20 
 count = 0  
 
-while count < max_iteracoes:
-    driver.execute_script("window.scrollBy(0, 2000);")
-    verificar_e_clicar_retry(driver)
-    count += 1    
+# while count < max_iteracoes:
+#     driver.execute_script("window.scrollBy(0, 2000);")
+#     verificar_e_clicar_retry(driver)
+#     count += 1    
 
-count = 0 
-while count < max_iteracoes:
-    print(f"Processando tweet {count + 1} de {max_iteracoes}")
-    # driver.execute_script("document.body.style.zoom='70%'")
+# count = 0 
+# while count < max_iteracoes:
+#     print(f"Processando tweet {count + 1} de {max_iteracoes}")
+#     # driver.execute_script("document.body.style.zoom='70%'")
 
-    verificar_e_clicar_retry(driver)
-    verificar_link(driver, x_page_futebol)
+#     verificar_e_clicar_retry(driver)
+#     verificar_link(driver, x_page_futebol)
     
-    find_tweet(driver, count)
-    df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-    fechar_aba_e_retornar_para_main(driver)
-    verificar_e_clicar_retry(driver)
+#     find_tweet(driver, count)
+#     df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+#     fechar_aba_e_retornar_para_main(driver)
+#     verificar_e_clicar_retry(driver)
 
-    print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
+#     print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
 
-    # Volta para a timeline (clica no botão "Back")
-    # click_element(
-    #     driver,
-    #     locator='//*[@aria-label="Back"]', 
-    #     locator_type=By.XPATH
-    # )
-    time.sleep(3)
-    # driver.execute_script("window.scrollBy(0, 1500);")
-    count += 1
+#     # Volta para a timeline (clica no botão "Back")
+#     # click_element(
+#     #     driver,
+#     #     locator='//*[@aria-label="Back"]', 
+#     #     locator_type=By.XPATH
+#     # )
+#     time.sleep(3)
+#     # driver.execute_script("window.scrollBy(0, 1500);")
+#     count += 1
+
+for i in range(max_iteracoes):
+    count = 0 
+    for count in range(5):
+        print(f"Processando tweet {i+1} de {max_iteracoes}")
+        verificar_e_clicar_retry(driver)
+        verificar_link(driver, x_page_futebol)
+        
+        find_tweet(driver, count)
+        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+        
+        fechar_aba_e_retornar_para_main(driver)
+        verificar_e_clicar_retry(driver)
+
+        print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
+        time.sleep(3)
+        count += 1
+    driver.execute_script("window.scrollBy(0, 5000);")
+    verificar_e_clicar_retry(driver)  
+    i+1
+
+
 
 # ######################################################################################## DATA POLITICA ########################################################################################
 
