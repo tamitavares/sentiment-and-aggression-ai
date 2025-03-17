@@ -26,7 +26,7 @@ time.sleep(10)
 
 df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
 
-max_iteracoes = 1 
+max_iteracoes = 10 
 count = 0  
 
 while count < max_iteracoes:
@@ -44,6 +44,7 @@ while count < max_iteracoes:
     
     find_tweet(driver, count)
     df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+    fechar_aba_e_retornar_para_main(driver)
     verificar_e_clicar_retry(driver)
 
     print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")

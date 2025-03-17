@@ -123,6 +123,14 @@ def abrir_tweet_em_nova_aba(driver, tweet_element):
     
     return driver
 
+def fechar_aba_e_retornar_para_main(driver):
+    try:
+        driver.close()  # Fecha a aba do tweet
+        driver.switch_to.window(driver.window_handles[0])  # Volta para a aba principal
+        time.sleep(1)
+    except Exception as e:
+        print(f"Erro ao fechar a aba e retornar à main: {e}")
+
 def extract_tweet(driver, df_tweets):
     try:
         wait = WebDriverWait(driver, 10)  # Espera até 10 segundos
