@@ -99,7 +99,7 @@ def reload_function(n):
         time.sleep(2) 
     verificar_e_clicar_retry(driver)
 
-def rolar_ate_o_final(driver, max_tentativas=5):
+def rolar_ate_o_final(driver, max_tentativas=15):
     ultima_altura = driver.execute_script("return document.body.scrollHeight")
     tentativas = 0
     
@@ -230,8 +230,8 @@ def processar_tweets(driver, max_iteracoes, df_tweets_futebol, count):
         find_tweet(driver, count)
         df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
         print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
-        if not clicar_botao_voltar(driver):
-            break 
+        # if not clicar_botao_voltar(driver):
+        #     break 
         time.sleep(3)
         count += 1
 
