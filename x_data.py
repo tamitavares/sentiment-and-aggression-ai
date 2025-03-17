@@ -22,45 +22,41 @@ click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div
 ######################################################################################## DATA FUTEBOL ########################################################################################
 
 driver.maximize_window()
-driver.execute_script("document.body.style.zoom='70%'")
 time.sleep(10)
-
 
 df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
 
-max_iteracoes = 2000 
+max_iteracoes = 1 
 count = 0  
 
 while count < max_iteracoes:
-    # max_iteracoes = 5
+    driver.execute_script("window.scrollBy(0, 1000);")
+    verificar_e_clicar_retry(driver)
+    count += 1    
 
-    # processar_tweets(driver, max_iteracoes, df_tweets_futebol, count)
-    # count += 1
+count = 0 
+while count < max_iteracoes:
+    print(f"Processando tweet {count + 1} de {max_iteracoes}")
+    # driver.execute_script("document.body.style.zoom='70%'")
 
-    max_iteracoes = 2000 
-    count = 0  
+    verificar_e_clicar_retry(driver)
+    verificar_link(driver, x_page_futebol)
+    
+    find_tweet(driver, count)
+    df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+    verificar_e_clicar_retry(driver)
 
-    while count < max_iteracoes:
-        print(f"Processando tweet {count + 1} de {max_iteracoes}")
-        # driver.execute_script("document.body.style.zoom='70%'")
+    print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
 
-        verificar_e_clicar_retry(driver)
-        verificar_link(driver, x_page_futebol)
-        
-        find_tweet(driver, count)
-        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-
-        print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
-
-        # Volta para a timeline (clica no botão "Back")
-        click_element(
-            driver,
-            locator='//*[@aria-label="Back"]', 
-            locator_type=By.XPATH
-        )
-        time.sleep(3)
-        driver.execute_script("window.scrollBy(0, 1500);")
-        count += 1
+    # Volta para a timeline (clica no botão "Back")
+    click_element(
+        driver,
+        locator='//*[@aria-label="Back"]', 
+        locator_type=By.XPATH
+    )
+    time.sleep(3)
+    # driver.execute_script("window.scrollBy(0, 1500);")
+    count += 1
 
 # ######################################################################################## DATA POLITICA ########################################################################################
 
