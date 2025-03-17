@@ -84,10 +84,10 @@ def find_tweet(driver, count):
         # Encontra a div com data-testid="tweetText" dentro do tweet
         div_texto_tweet = tweet.find_element(By.XPATH, './/div[@data-testid="tweetText"]')
         driver = abrir_tweet_em_nova_aba(driver, tweet)
-        rolar_ate_o_final(driver)
-
-        print("Div do texto do tweet encontrada! Clicando na div...")
-        div_texto_tweet.click()  # Clica na div do texto do tweet
+        # rolar_ate_o_final(driver)
+        
+        # print("Div do texto do tweet encontrada! Clicando na div...")
+        # div_texto_tweet.click()  # Clica na div do texto do tweet
     except Exception as e:
         print(f"Erro ao interagir com o tweet: {e}")
     
@@ -99,7 +99,7 @@ def reload_function(n):
         time.sleep(2) 
     verificar_e_clicar_retry(driver)
 
-def rolar_ate_o_final(driver, max_tentativas=15):
+def rolar_ate_o_final(driver, max_tentativas=10):
     ultima_altura = driver.execute_script("return document.body.scrollHeight")
     tentativas = 0
     
