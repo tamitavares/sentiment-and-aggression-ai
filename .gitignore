@@ -1,2 +1,5 @@
+# Ignorar arquivos de configuração local
 .env
-tweets.csv
+*.env
+
+df_tweets_futebol.csv

@@ -126,3 +126,74 @@ def extract_tweet(driver, df_tweets):
 
     finally:
         time.sleep(5)
+
+def verificar_e_clicar_retry(driver):
+    try:
+        # Localiza o botão que contém um span com o texto "Retry"
+        botao_retry = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, '//button//div//span[text()="Retry"]'))
+        )
+        # Clica no botão "Retry"
+        botao_retry.click()
+        print("Botão 'Retry' encontrado e clicado!")
+        return True
+    except Exception as e:
+        # Se o botão não for encontrado, apenas continua a execução
+        return False
+    
+def clicar_botao_voltar(driver):
+    try:
+        botao_voltar = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@aria-label="Back"]'))
+        )
+        botao_voltar.click()
+        print("Botão de voltar clicado com sucesso!")
+        return True
+    except Exception as e:
+        print(f"Erro ao clicar no botão de voltar: {e}")
+        return False
+
+# Função principal
+def processar_tweets(driver, max_iteracoes, df_tweets_futebol, count):
+    while count < max_iteracoes:
+        print(f"Processando tweet {count + 1} de {max_iteracoes}")
+        driver.execute_script("window.scrollBy(0, 500);")
+        # verificar_e_clicar_retry(driver)
+        # Extrai o tweet
+        find_tweet(driver, count)
+        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+        print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
+        if not clicar_botao_voltar(driver):
+            break 
+        time.sleep(3)
+        count += 1
+
+def verificar_link(driver):
+    try:
+        # Localiza o botão que contém um span com o texto "Retry"
+        botao_retry = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, '//button//div//span[text()="Retry"]'))
+        )
+        # Clica no botão "Retry"
+        botao_retry.click()
+        print("Botão 'Retry' encontrado e clicado!")
+        return True
+    except Exception as e:
+        # Se o botão não for encontrado, apenas continua a execução
+        return False
+    
+def verificar_link(driver, url_correta):
+    try:
+        # Verifica se a URL atual é a correta
+        if driver.current_url == url_correta:
+            return True
+        else:
+            print(f"Não está no link correto. URL atual: {driver.current_url}")
+            driver.back()
+            time.sleep(3)
+            driver.execute_script("window.scrollBy(0, 2000);")
+            time.sleep(3)
+    except Exception as e:
+        print(f"Erro ao verificar o link: {e}")
+        return False
+    
