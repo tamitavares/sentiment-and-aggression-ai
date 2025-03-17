@@ -32,23 +32,35 @@ max_iteracoes = 2000
 count = 0  
 
 while count < max_iteracoes:
-    print(f"Processando tweet {count + 1} de {max_iteracoes}")
+    # max_iteracoes = 5
 
-    find_tweet(driver, count)
-    df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+    # processar_tweets(driver, max_iteracoes, df_tweets_futebol, count)
+    # count += 1
 
-    print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
+    max_iteracoes = 2000 
+    count = 0  
 
-    # Volta para a timeline (clica no botão "Back")
-    click_element(
-        driver,
-        locator='//*[@aria-label="Back"]', 
-        locator_type=By.XPATH
-    )
-    time.sleep(3)
-    driver.execute_script("window.scrollBy(0, 1000);")
-    time.sleep(3)
-    count += 1
+    while count < max_iteracoes:
+        print(f"Processando tweet {count + 1} de {max_iteracoes}")
+        # driver.execute_script("document.body.style.zoom='70%'")
+
+        verificar_e_clicar_retry(driver)
+        verificar_link(driver, x_page_futebol)
+        
+        find_tweet(driver, count)
+        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+
+        print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
+
+        # Volta para a timeline (clica no botão "Back")
+        click_element(
+            driver,
+            locator='//*[@aria-label="Back"]', 
+            locator_type=By.XPATH
+        )
+        time.sleep(3)
+        driver.execute_script("window.scrollBy(0, 1500);")
+        count += 1
 
 # ######################################################################################## DATA POLITICA ########################################################################################
 
