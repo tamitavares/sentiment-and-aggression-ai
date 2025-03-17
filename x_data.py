@@ -26,11 +26,11 @@ time.sleep(10)
 
 df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
 
-max_iteracoes = 10 
+max_iteracoes = 50 
 count = 0  
 
 while count < max_iteracoes:
-    driver.execute_script("window.scrollBy(0, 1000);")
+    driver.execute_script("window.scrollBy(0, 2000);")
     verificar_e_clicar_retry(driver)
     count += 1    
 
@@ -50,11 +50,11 @@ while count < max_iteracoes:
     print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
 
     # Volta para a timeline (clica no botão "Back")
-    click_element(
-        driver,
-        locator='//*[@aria-label="Back"]', 
-        locator_type=By.XPATH
-    )
+    # click_element(
+    #     driver,
+    #     locator='//*[@aria-label="Back"]', 
+    #     locator_type=By.XPATH
+    # )
     time.sleep(3)
     # driver.execute_script("window.scrollBy(0, 1500);")
     count += 1
