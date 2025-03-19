@@ -66,81 +66,14 @@ def write_data(driver, locator, data, locator_type=By.XPATH, max_tentativas=3, d
     print(f"Falha ao escrever dados no elemento após {max_tentativas} tentativas.")
     return False  
 
-
-# def extract_tweets(driver, df_tweets=None):
-#     """
-#     Extrai tweets de uma página do Twitter e atualiza um DataFrame existente.
-
-#     Args:
-#         driver: Instância do WebDriver do Selenium.
-#         df_tweets (pd.DataFrame): DataFrame existente para ser atualizado. Se None, cria um novo.
-
-#     Returns:
-#         pd.DataFrame: DataFrame atualizado com os novos tweets.
-#     """
-#     try:
-#         # Encontra todas as divs com data-testid="tweetText"
-#         wait = WebDriverWait(driver, 10)  # Espera até 10 segundos
-#         tweets = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@data-testid="tweetText"]')))
-
-#         # Se nenhum DataFrame for fornecido, cria um novo
-#         if df_tweets is None:
-#             df_tweets = pd.DataFrame(columns=["Tipo", "Texto"])
-
-#         # Lista para armazenar os novos tweets
-#         novos_tweets = []
-
-#         # Verifica se há tweets na página
-#         if tweets:
-#             print(f"{len(tweets)} tweets encontrados na página.")
-
-#             # Extrai o tweet principal (primeiro tweet)
-#             try:
-#                 tweet_principal = tweets[0].find_element(By.XPATH, './/span').text
-#                 novos_tweets.append({"Tipo": "Principal", "Texto": tweet_principal})
-#                 print("Tweet principal extraído com sucesso!")
-#             except Exception as e:
-#                 print(f"Erro ao extrair o tweet principal: {e}")
-
-#             # Extrai os tweets relacionados (todos os tweets após o primeiro)
-#             for i, tweet in enumerate(tweets[1:], start=1):
-#                 try:
-#                     span_texto = tweet.find_element(By.XPATH, './/span')
-#                     texto = span_texto.text
-#                     novos_tweets.append({"Tipo": "Relacionado", "Texto": texto})
-#                     print(f"Tweet relacionado {i} extraído com sucesso!")
-#                 except Exception as e:
-#                     print(f"Erro ao extrair texto de um tweet relacionado: {e}")
-
-#         # Converte a lista de novos tweets em um DataFrame
-#         df_novos_tweets = pd.DataFrame(novos_tweets)
-
-#         # Atualiza o DataFrame existente com os novos tweets
-#         if not df_novos_tweets.empty:
-#             df_tweets = pd.concat([df_tweets, df_novos_tweets], ignore_index=True)
-#             print("DataFrame atualizado com sucesso!")
-#         else:
-#             print("Nenhum novo tweet foi extraído.")
-
-#         return df_tweets
-
-#     except Exception as e:
-#         print(f"Erro ao encontrar os tweets: {e}")
-#         return df_tweets
-
-#     finally:
-#         # Aguarda alguns segundos para visualizar o resultado
-#         time.sleep(5)
-
-
-def print_dataframe(df_tweets):
+def print_dataframe(df_tweets, filename):
     # Exibe o DataFrame final
     if df_tweets is not None:
         print("DataFrame final:")
         print(df_tweets)
-        # Salva o DataFrame em um arquivo CSV
-        df_tweets.to_csv("tweets.csv", index=False, encoding="utf-8")
-        print("DataFrame salvo em 'tweets.csv'.")
+        # Salva o DataFrame em um arquivo CSV com o nome especificado
+        df_tweets.to_csv(filename, index=False, encoding="utf-8")
+        print(f"DataFrame salvo em '{filename}'.")
 
 def find_tweet(driver, count):
     try:
@@ -150,22 +83,62 @@ def find_tweet(driver, count):
     
         # Encontra a div com data-testid="tweetText" dentro do tweet
         div_texto_tweet = tweet.find_element(By.XPATH, './/div[@data-testid="tweetText"]')
-        print("Div do texto do tweet encontrada! Clicando na div...")
-        div_texto_tweet.click()  # Clica na div do texto do tweet
+        driver = abrir_tweet_em_nova_aba(driver, tweet)
+        # rolar_ate_o_final(driver)
+        
+        # print("Div do texto do tweet encontrada! Clicando na div...")
+        # div_texto_tweet.click()  # Clica na div do texto do tweet
     except Exception as e:
         print(f"Erro ao interagir com o tweet: {e}")
     
     time.sleep(5)
 
+def reload_function(n):
+    for _ in range(n): 
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2) 
+    verificar_e_clicar_retry(driver)
+
+def rolar_ate_o_final(driver, max_tentativas=10):
+    ultima_altura = driver.execute_script("return document.body.scrollHeight")
+    tentativas = 0
+    
+    while tentativas < max_tentativas:
+        verificar_e_clicar_retry(driver)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # Aguardar carregamento
+        nova_altura = driver.execute_script("return document.body.scrollHeight")
+        if nova_altura == ultima_altura:
+            print("Fim da página alcançado.")
+            break
+        ultima_altura = nova_altura
+        tentativas += 1
+
+def abrir_tweet_em_nova_aba(driver, tweet_element):
+    link = tweet_element.find_element(By.CSS_SELECTOR, 'a[href*="/status/"]').get_attribute("href")
+    driver.execute_script(f"window.open('{link}', '_blank');")
+
+    driver.switch_to.window(driver.window_handles[1])
+    time.sleep(2)  
+    
+    return driver
+
+def fechar_aba_e_retornar_para_main(driver):
+    try:
+        driver.close()  # Fecha a aba do tweet
+        driver.switch_to.window(driver.window_handles[0])  # Volta para a aba principal
+        time.sleep(1)
+    except Exception as e:
+        print(f"Erro ao fechar a aba e retornar à main: {e}")
+
 def extract_tweet(driver, df_tweets):
     try:
         wait = WebDriverWait(driver, 10)  # Espera até 10 segundos
+
         tweets = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@data-testid="tweetText"]')))
-    
         novos_tweets = []
 
         if tweets:
-            # Extrai o tweet principal
             tweet_principal = tweets[0].find_element(By.XPATH, './/span').text
             novos_tweets.append({"Tipo": "Principal", "Texto": tweet_principal}) 
 
@@ -184,7 +157,6 @@ def extract_tweet(driver, df_tweets):
             print("DataFrame atualizado com sucesso!")
         else:
             print("Nenhum novo tweet foi extraído.")
-
         return df_tweets
     
     except Exception as e:
@@ -192,5 +164,103 @@ def extract_tweet(driver, df_tweets):
         return df_tweets
 
     finally:
-        # Aguarda alguns segundos para visualizar o resultado
         time.sleep(5)
+    # Localizar todos os containers com data-testid="cellInnerDiv"
+    # containers = WebDriverWait(driver, 15).until(
+    #     EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[data-testid="cellInnerDiv"]'))
+    # )
+    
+    # # Array para armazenar os textos dos spans
+    # novos_tweets = []
+    
+    # # Iterar sobre cada container
+    # for container in containers:
+    #     # Coletar todos os spans dentro do container
+    #     spans = container.find_elements(By.TAG_NAME, "span")
+        
+    #     # Extrair o texto de cada span e adicionar ao array
+    #     for span in spans:
+    #         texto = span.text.strip()  # Remove espaços em branco
+    #         if texto:  # Ignora spans vazios
+    #             novos_tweets.append({"Tipo": "Relacionado", "Texto": texto})
+    
+    # # Criar DataFrame com os novos tweets
+    # if novos_tweets:
+    #     df_novos = pd.DataFrame(novos_tweets)
+    #     df_tweets = pd.concat([df_tweets, df_novos], ignore_index=True)
+    #     print(f"{len(novos_tweets)} novos tweets coletados!")
+    # else:
+    #     print("Nenhum novo tweet foi encontrado.")
+    
+    # return df_tweets
+
+def verificar_e_clicar_retry(driver):
+    try:
+        # Localiza o botão que contém um span com o texto "Retry"
+        botao_retry = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, '//button//div//span[text()="Retry"]'))
+        )
+        # Clica no botão "Retry"
+        botao_retry.click()
+        print("Botão 'Retry' encontrado e clicado!")
+        return True
+    except Exception as e:
+        # Se o botão não for encontrado, apenas continua a execução
+        return False
+    
+def clicar_botao_voltar(driver):
+    try:
+        botao_voltar = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@aria-label="Back"]'))
+        )
+        botao_voltar.click()
+        print("Botão de voltar clicado com sucesso!")
+        return True
+    except Exception as e:
+        print(f"Erro ao clicar no botão de voltar: {e}")
+        return False
+
+# Função principal
+def processar_tweets(driver, max_iteracoes, df_tweets_futebol, count):
+    while count < max_iteracoes:
+        print(f"Processando tweet {count + 1} de {max_iteracoes}")
+        driver.execute_script("window.scrollBy(0, 500);")
+        # verificar_e_clicar_retry(driver)
+        # Extrai o tweet
+        find_tweet(driver, count)
+        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
+        print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
+        # if not clicar_botao_voltar(driver):
+        #     break 
+        time.sleep(3)
+        count += 1
+
+def verificar_link(driver):
+    try:
+        # Localiza o botão que contém um span com o texto "Retry"
+        botao_retry = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, '//button//div//span[text()="Retry"]'))
+        )
+        # Clica no botão "Retry"
+        botao_retry.click()
+        print("Botão 'Retry' encontrado e clicado!")
+        return True
+    except Exception as e:
+        # Se o botão não for encontrado, apenas continua a execução
+        return False
+    
+def verificar_link(driver, url_correta):
+    try:
+        # Verifica se a URL atual é a correta
+        if driver.current_url == url_correta:
+            return True
+        else:
+            print(f"Não está no link correto. URL atual: {driver.current_url}")
+            driver.back()
+            time.sleep(3)
+            driver.execute_script("window.scrollBy(0, 2000);")
+            time.sleep(3)
+    except Exception as e:
+        print(f"Erro ao verificar o link: {e}")
+        return False
+    
