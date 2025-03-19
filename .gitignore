@@ -1,5 +1,0 @@
-# Ignorar arquivos de configuração local
-.env
-*.env
-
-df_tweets_futebol.csv
