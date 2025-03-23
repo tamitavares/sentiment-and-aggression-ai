@@ -82,12 +82,7 @@ def find_tweet(driver, count):
         print(f"Tweet {count + 1} encontrado!")
     
         # Encontra a div com data-testid="tweetText" dentro do tweet
-        div_texto_tweet = tweet.find_element(By.XPATH, './/div[@data-testid="tweetText"]')
         driver = abrir_tweet_em_nova_aba(driver, tweet)
-        # rolar_ate_o_final(driver)
-        
-        # print("Div do texto do tweet encontrada! Clicando na div...")
-        # div_texto_tweet.click()  # Clica na div do texto do tweet
     except Exception as e:
         print(f"Erro ao interagir com o tweet: {e}")
     
@@ -131,26 +126,87 @@ def fechar_aba_e_retornar_para_main(driver):
     except Exception as e:
         print(f"Erro ao fechar a aba e retornar à main: {e}")
 
+def get_number_from_div(driver, locator, locator_type=By.XPATH, max_retries=3, delay=2):
+    """
+    Visualiza a div que contém `data-testid="app-text-transition-container"`, extrai o valor do `<span>` e o converte em um número.
+
+    Parâmetros:
+        driver: Instância do driver do Selenium.
+        locator: Localizador da div (por exemplo, XPath, CSS Selector, ID).
+        locator_type: Tipo de localizador (padrão: By.XPATH, ou By.CSS_SELECTOR, By.ID, etc.).
+        max_retries: Número máximo de tentativas em caso de falha (padrão: 3).
+        delay: Tempo de espera entre tentativas (padrão: 2 segundos).
+
+    Retorna:
+        int ou float: O valor numérico extraído do `<span>`.
+        None: Se o elemento não for encontrado ou o valor não puder ser convertido em número.
+    """
+    for attempt in range(max_retries):
+        try:
+            # Encontra a div que contém data-testid="app-text-transition-container"
+            div = driver.find_element(locator_type, locator)
+            
+            # Rola a página até a div ficar visível
+            driver.execute_script("arguments[0].scrollIntoView();", div)
+            
+            # Encontra o <span> dentro da div
+            span = div.find_element(By.XPATH, './/span')
+            
+            # Extrai o texto do <span>
+            texto = span.text.strip()
+            
+            # Tenta converter o texto em um número (int ou float)
+            try:
+                if "." in texto:  # Verifica se é um número decimal
+                    return float(texto)
+                else:
+                    return int(texto)
+            except ValueError:
+                print(f"O texto '{texto}' não pôde ser convertido em número.")
+                return None
+
+        except NoSuchElementException:
+            print(f"Div ou span não encontrado: {locator}. Tentativa {attempt + 1} de {max_retries}.")
+        except Exception as e:
+            print(f"Erro inesperado ao processar o elemento: {e}. Tentativa {attempt + 1} de {max_retries}.")
+        
+        # Aguarda antes de tentar novamente
+        time.sleep(delay)
+    
+    print(f"Falha ao processar o elemento após {max_retries} tentativas.")
+    return None
+
 def extract_tweet(driver, df_tweets):
     try:
         wait = WebDriverWait(driver, 10)  # Espera até 10 segundos
-
         tweets = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@data-testid="tweetText"]')))
         novos_tweets = []
 
         if tweets:
             tweet_principal = tweets[0].find_element(By.XPATH, './/span').text
             novos_tweets.append({"Tipo": "Principal", "Texto": tweet_principal}) 
-
-            # Extrai os tweets relacionados
-            for tweet in tweets[1:]: 
-                try:
-                    span_texto = tweet.find_element(By.XPATH, './/span')
-                    texto = span_texto.text
-                    novos_tweets.append({"Tipo": "Relacionado", "Texto": texto}) 
-                except Exception as e:
-                    print(f"Erro ao extrair texto de um tweet relacionado: {e}")
-                
+            # locator_div = '//span[@class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3"]'
+            # numero = get_number_from_div(driver, locator=locator_div, locator_type=By.XPATH)
+            # print(numero)
+            # contagem = numero // 10 
+            # resto = numero % 10
+            # soma = contagem + resto
+            
+            i=0
+            for i in range(10):
+                count = 0
+                for count in range(10):
+                    # Extrai os tweets relacionados
+                    for tweet in tweets[1:]: 
+                        try:
+                            span_texto = tweet.find_element(By.XPATH, './/span')
+                            texto = span_texto.text
+                            novos_tweets.append({"Tipo": "Relacionado", "Texto": texto}) 
+                        except Exception as e:
+                            print(f"Erro ao extrair texto de um tweet relacionado: {e}")
+                    count+=1
+                driver.execute_script("window.scrollBy(0, 5000);")
+                i+1
         df_novos_tweets = pd.DataFrame(novos_tweets)
         if not df_novos_tweets.empty:
             df_tweets = pd.concat([df_tweets, df_novos_tweets], ignore_index=True)
@@ -219,21 +275,6 @@ def clicar_botao_voltar(driver):
     except Exception as e:
         print(f"Erro ao clicar no botão de voltar: {e}")
         return False
-
-# Função principal
-def processar_tweets(driver, max_iteracoes, df_tweets_futebol, count):
-    while count < max_iteracoes:
-        print(f"Processando tweet {count + 1} de {max_iteracoes}")
-        driver.execute_script("window.scrollBy(0, 500);")
-        # verificar_e_clicar_retry(driver)
-        # Extrai o tweet
-        find_tweet(driver, count)
-        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-        print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
-        # if not clicar_botao_voltar(driver):
-        #     break 
-        time.sleep(3)
-        count += 1
 
 def verificar_link(driver):
     try:

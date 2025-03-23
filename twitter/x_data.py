@@ -58,7 +58,7 @@ count = 0
 #     time.sleep(3)
 #     # driver.execute_script("window.scrollBy(0, 1500);")
 #     count += 1
-
+i=0
 for i in range(max_iteracoes):
     count = 0 
     for count in range(5):
