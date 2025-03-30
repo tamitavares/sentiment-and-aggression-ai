@@ -82,12 +82,7 @@ def find_tweet(driver, count):
         print(f"Tweet {count + 1} encontrado!")
     
         # Encontra a div com data-testid="tweetText" dentro do tweet
-        div_texto_tweet = tweet.find_element(By.XPATH, './/div[@data-testid="tweetText"]')
         driver = abrir_tweet_em_nova_aba(driver, tweet)
-        # rolar_ate_o_final(driver)
-        
-        # print("Div do texto do tweet encontrada! Clicando na div...")
-        # div_texto_tweet.click()  # Clica na div do texto do tweet
     except Exception as e:
         print(f"Erro ao interagir com o tweet: {e}")
     
@@ -131,68 +126,112 @@ def fechar_aba_e_retornar_para_main(driver):
     except Exception as e:
         print(f"Erro ao fechar a aba e retornar à main: {e}")
 
-def extract_tweet(driver, df_tweets):
+def get_number_from_div(driver, locator, locator_type=By.XPATH, max_retries=3, delay=2):
+    """
+    Visualiza a div que contém `data-testid="app-text-transition-container"`, extrai o valor do `<span>` e o converte em um número.
+
+    Parâmetros:
+        driver: Instância do driver do Selenium.
+        locator: Localizador da div (por exemplo, XPath, CSS Selector, ID).
+        locator_type: Tipo de localizador (padrão: By.XPATH, ou By.CSS_SELECTOR, By.ID, etc.).
+        max_retries: Número máximo de tentativas em caso de falha (padrão: 3).
+        delay: Tempo de espera entre tentativas (padrão: 2 segundos).
+
+    Retorna:
+        int ou float: O valor numérico extraído do `<span>`.
+        None: Se o elemento não for encontrado ou o valor não puder ser convertido em número.
+    """
+    for attempt in range(max_retries):
+        try:
+            # Encontra a div que contém data-testid="app-text-transition-container"
+            div = driver.find_element(locator_type, locator)
+            
+            # Rola a página até a div ficar visível
+            driver.execute_script("arguments[0].scrollIntoView();", div)
+            
+            # Encontra o <span> dentro da div
+            span = div.find_element(By.XPATH, './/span')
+            
+            # Extrai o texto do <span>
+            texto = span.text.strip()
+            
+            # Tenta converter o texto em um número (int ou float)
+            try:
+                if "." in texto:  # Verifica se é um número decimal
+                    return float(texto)
+                else:
+                    return int(texto)
+            except ValueError:
+                print(f"O texto '{texto}' não pôde ser convertido em número.")
+                return None
+
+        except NoSuchElementException:
+            print(f"Div ou span não encontrado: {locator}. Tentativa {attempt + 1} de {max_retries}.")
+        except Exception as e:
+            print(f"Erro inesperado ao processar o elemento: {e}. Tentativa {attempt + 1} de {max_retries}.")
+        
+        # Aguarda antes de tentar novamente
+        time.sleep(delay)
+    
+    print(f"Falha ao processar o elemento após {max_retries} tentativas.")
+    return None
+
+def extract_tweet(driver, df_tweets, iteracoes, max_scrolls=10):
     try:
-        wait = WebDriverWait(driver, 10)  # Espera até 10 segundos
+        wait = WebDriverWait(driver, 10)
+        tweets_coletados = []
+        tweet_principal_coletado = False  # Flag para garantir que só um tweet principal será coletado
 
+        # Coletar o primeiro tweet (Principal) antes de qualquer rolagem
         tweets = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@data-testid="tweetText"]')))
-        novos_tweets = []
-
         if tweets:
-            tweet_principal = tweets[0].find_element(By.XPATH, './/span').text
-            novos_tweets.append({"Tipo": "Principal", "Texto": tweet_principal}) 
+            # Extrair o primeiro tweet como "Principal"
+            tweet_principal = " ".join([span.text.strip() for span in tweets[0].find_elements(By.XPATH, './/span')])
+            if tweet_principal and tweet_principal not in [t["Texto"] for t in tweets_coletados]:
+                tweets_coletados.append({"Tipo": "Principal", "Texto": tweet_principal, "Chave": iteracoes})
+                tweet_principal_coletado = True  # Garantir que só um tweet principal seja coletado
 
-            # Extrai os tweets relacionados
-            for tweet in tweets[1:]: 
+        # Realizar a rolagem para carregar mais tweets
+        for i in range(max_scrolls):  
+            # Rolar até o último tweet visível para carregar mais tweets
+            if tweets:
                 try:
-                    span_texto = tweet.find_element(By.XPATH, './/span')
-                    texto = span_texto.text
-                    novos_tweets.append({"Tipo": "Relacionado", "Texto": texto}) 
+                    driver.execute_script("arguments[0].scrollIntoView();", tweets[-1])
                 except Exception as e:
-                    print(f"Erro ao extrair texto de um tweet relacionado: {e}")
-                
-        df_novos_tweets = pd.DataFrame(novos_tweets)
+                    print(f"Erro ao rolar até o tweet: {e}")
+                    driver.execute_script("window.scrollBy(0, 2000);")  # Scroll alternativo
+
+            time.sleep(2)  # Esperar carregamento dos novos tweets
+
+            # Esperar os novos tweets carregarem
+            tweets = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@data-testid="tweetText"]')))
+
+            if tweets:
+                # Extrair os tweets relacionados (ignorando o primeiro tweet que já foi marcado como principal)
+                for tweet in tweets:  
+                    try:
+                        texto = " ".join([span.text.strip() for span in tweet.find_elements(By.XPATH, './/span')])
+                        if texto and texto not in [t["Texto"] for t in tweets_coletados]:
+                            tweets_coletados.append({"Tipo": "Relacionado", "Texto": texto, "Chave": iteracoes})  # Adicionando chave
+                    except Exception as e:
+                        print(f"Erro ao extrair texto de um tweet relacionado: {e}")
+
+        # Criar DataFrame com os tweets coletados
+        df_novos_tweets = pd.DataFrame(tweets_coletados)
+
         if not df_novos_tweets.empty:
             df_tweets = pd.concat([df_tweets, df_novos_tweets], ignore_index=True)
-            print("DataFrame atualizado com sucesso!")
+            print(f"{len(df_novos_tweets)} novos tweets coletados!")
         else:
             print("Nenhum novo tweet foi extraído.")
-        return df_tweets
-    
-    except Exception as e:
-        print(f"Erro ao encontrar os tweets: {e}")
+
         return df_tweets
 
-    finally:
-        time.sleep(5)
-    # Localizar todos os containers com data-testid="cellInnerDiv"
-    # containers = WebDriverWait(driver, 15).until(
-    #     EC.presence_of_all_elements_located((By.CSS_SELECTOR, '[data-testid="cellInnerDiv"]'))
-    # )
+    except Exception as e:
+        print(f"Erro geral ao extrair tweets: {e}")
+        return df_tweets
+
     
-    # # Array para armazenar os textos dos spans
-    # novos_tweets = []
-    
-    # # Iterar sobre cada container
-    # for container in containers:
-    #     # Coletar todos os spans dentro do container
-    #     spans = container.find_elements(By.TAG_NAME, "span")
-        
-    #     # Extrair o texto de cada span e adicionar ao array
-    #     for span in spans:
-    #         texto = span.text.strip()  # Remove espaços em branco
-    #         if texto:  # Ignora spans vazios
-    #             novos_tweets.append({"Tipo": "Relacionado", "Texto": texto})
-    
-    # # Criar DataFrame com os novos tweets
-    # if novos_tweets:
-    #     df_novos = pd.DataFrame(novos_tweets)
-    #     df_tweets = pd.concat([df_tweets, df_novos], ignore_index=True)
-    #     print(f"{len(novos_tweets)} novos tweets coletados!")
-    # else:
-    #     print("Nenhum novo tweet foi encontrado.")
-    
-    # return df_tweets
 
 def verificar_e_clicar_retry(driver):
     try:
@@ -219,21 +258,6 @@ def clicar_botao_voltar(driver):
     except Exception as e:
         print(f"Erro ao clicar no botão de voltar: {e}")
         return False
-
-# Função principal
-def processar_tweets(driver, max_iteracoes, df_tweets_futebol, count):
-    while count < max_iteracoes:
-        print(f"Processando tweet {count + 1} de {max_iteracoes}")
-        driver.execute_script("window.scrollBy(0, 500);")
-        # verificar_e_clicar_retry(driver)
-        # Extrai o tweet
-        find_tweet(driver, count)
-        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-        print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
-        # if not clicar_botao_voltar(driver):
-        #     break 
-        time.sleep(3)
-        count += 1
 
 def verificar_link(driver):
     try:

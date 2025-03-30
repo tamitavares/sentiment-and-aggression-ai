@@ -10,8 +10,8 @@ open_page(x_page_futebol)
 write_data(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div/div/div/div[4]/label/div/div[2]/div/input", data=email, locator_type=By.XPATH)
 # Avançar 
 click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div/div/div/button[2]", locator_type=By.XPATH)
-# Username
-write_data(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input", data=username, locator_type=By.XPATH)
+# # Username
+# write_data(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input", data=username, locator_type=By.XPATH)
 # Avançar 
 click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button", locator_type=By.XPATH)
 # Password
@@ -24,60 +24,42 @@ click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div
 driver.maximize_window()
 time.sleep(10)
 
-df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto"])
+df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
 
-max_iteracoes = 20 
+max_iteracoes = 500 # lembrar que a qtde de tweets extraidos é max_iteracoes*5
 count = 0  
 
-# while count < max_iteracoes:
-#     driver.execute_script("window.scrollBy(0, 2000);")
-#     verificar_e_clicar_retry(driver)
-#     count += 1    
-
-# count = 0 
-# while count < max_iteracoes:
-#     print(f"Processando tweet {count + 1} de {max_iteracoes}")
-#     # driver.execute_script("document.body.style.zoom='70%'")
-
-#     verificar_e_clicar_retry(driver)
-#     verificar_link(driver, x_page_futebol)
-    
-#     find_tweet(driver, count)
-#     df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-#     fechar_aba_e_retornar_para_main(driver)
-#     verificar_e_clicar_retry(driver)
-
-#     print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
-
-#     # Volta para a timeline (clica no botão "Back")
-#     # click_element(
-#     #     driver,
-#     #     locator='//*[@aria-label="Back"]', 
-#     #     locator_type=By.XPATH
-#     # )
-#     time.sleep(3)
-#     # driver.execute_script("window.scrollBy(0, 1500);")
-#     count += 1
-
+iteracoes = 0
 for i in range(max_iteracoes):
-    count = 0 
-    for count in range(5):
-        print(f"Processando tweet {i+1} de {max_iteracoes}")
-        verificar_e_clicar_retry(driver)
-        verificar_link(driver, x_page_futebol)
-        
-        find_tweet(driver, count)
-        df_tweets_futebol = extract_tweet(driver, df_tweets_futebol)
-        
-        fechar_aba_e_retornar_para_main(driver)
-        verificar_e_clicar_retry(driver)
+    for count in range(4):  # Removido 'count = 0'
+        try:
+            iteracoes += 1
+            print(f"Processando tweet {iteracoes} de {max_iteracoes}")
+            verificar_e_clicar_retry(driver)
+            verificar_link(driver, x_page_futebol)
+            find_tweet(driver, count)
+            
+            df_tweets_futebol = extract_tweet(driver, df_tweets_futebol, iteracoes)
+            
+            # Verificar se o df_tweets_futebol não está vazio antes de salvar
+            if not df_tweets_futebol.empty:
+                print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
+            else:
+                print(f"DataFrame vazio após a coleta do tweet {iteracoes}.")
+            
+            fechar_aba_e_retornar_para_main(driver)
+            verificar_e_clicar_retry(driver)
 
-        print_dataframe(df_tweets_futebol,"df_tweets_futebol.csv")
-        time.sleep(3)
-        count += 1
+            time.sleep(3)
+        except Exception as e:
+            print(f"Erro durante o processamento do tweet {iteracoes}: {e}")
+            continue  # Continuar para o próximo tweet mesmo em caso de erro
+        print(driver)
+
+    time.sleep(5)
     driver.execute_script("window.scrollBy(0, 5000);")
-    verificar_e_clicar_retry(driver)  
-    i+1
+    time.sleep(3)  # Esperar após rolar a página
+    verificar_e_clicar_retry(driver)
 
 
 
