@@ -194,6 +194,7 @@ def extract_tweet(driver, df_tweets, iteracoes, max_scrolls=10):
         # Realizar a rolagem para carregar mais tweets
         for i in range(max_scrolls):  
             # Rolar até o último tweet visível para carregar mais tweets
+            verificar_e_clicar_retry(driver)
             if tweets:
                 try:
                     driver.execute_script("arguments[0].scrollIntoView();", tweets[-1])
