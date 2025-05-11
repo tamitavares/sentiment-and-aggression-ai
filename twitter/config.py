@@ -2,8 +2,19 @@ from imports import *
 
 # Constants and variables
 
-x_page_futebol = "https://x.com/search?q=futebol&src=typed_query&f=top"
-x_page_politica = "https://x.com/search?q=politica%20brasil&src=typed_query&f=top"
+def x_page():
+    return 'https://x.com/search?q=brasileirao&src=typed_query'
+
+# TAGS
+# futebol
+# futebol%20brasileiro (%20 representa espaço)
+# brasileirao
+# campeonato%20brasileiro
+
+# TIMES 
+# flamengo
+# palmeiras
+# corinthians
 
 # .env
 load_dotenv()

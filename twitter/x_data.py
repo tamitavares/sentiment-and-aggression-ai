@@ -2,7 +2,7 @@ from imports import *
 from config import *
 from functions import *
 
-open_page(x_page_politica)
+open_page(x_page())
 
 ######################################################################################## LOGIN ########################################################################################
 
@@ -19,57 +19,15 @@ write_data(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/di
 # Entrar
 click_element(driver, locator="/html/body/div/div/div/div[1]/div/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button", locator_type=By.XPATH)
 
-######################################################################################## DATA FUTEBOL ########################################################################################
-
-# driver.maximize_window()
-# time.sleep(10)
-
-# df_tweets_futebol = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
-
-# max_iteracoes = 200 # lembrar que a qtde de tweets extraidos é max_iteracoes*5
-# count = 0  
-
-# iteracoes = 0
-# for i in range(max_iteracoes):
-#     for count in range(4):  # Removido 'count = 0'
-#         try:
-#             iteracoes += 1
-#             print(f"Processando tweet {iteracoes} de {max_iteracoes}")
-#             verificar_e_clicar_retry(driver)
-#             verificar_link(driver, x_page_futebol)
-#             find_tweet(driver, count)
-            
-#             df_tweets_futebol = extract_tweet(driver, df_tweets_futebol, iteracoes)
-            
-#             # Verificar se o df_tweets_futebol não está vazio antes de salvar
-#             if not df_tweets_futebol.empty:
-#                 print_dataframe(df_tweets_futebol, "df_tweets_futebol.csv")
-#             else:
-#                 print(f"DataFrame vazio após a coleta do tweet {iteracoes}.")
-            
-#             fechar_aba_e_retornar_para_main(driver)
-#             verificar_e_clicar_retry(driver)
-
-#             time.sleep(3)
-#         except Exception as e:
-#             print(f"Erro durante o processamento do tweet {iteracoes}: {e}")
-#             continue  # Continuar para o próximo tweet mesmo em caso de erro
-#         print(driver)
-
-#     time.sleep(5)
-#     driver.execute_script("window.scrollBy(0, 5000);")
-#     time.sleep(3)  # Esperar após rolar a página
-#     verificar_e_clicar_retry(driver)
-
-
-# ######################################################################################## DATA POLITICA ########################################################################################
+######################################################################################## DATA brasileirao ########################################################################################
 
 driver.maximize_window()
 time.sleep(10)
 
-df_tweets_politica = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
+df_tweets_brasileirao = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
 
-max_iteracoes = 200 # lembrar que a qtde de tweets extraidos é max_iteracoes*5
+
+max_iteracoes = 100 # lembrar que a qtde de tweets principais extraidos é max_iteracoes*4
 count = 0  
 
 iteracoes = 0
@@ -77,16 +35,16 @@ for i in range(max_iteracoes):
     for count in range(4):  # Removido 'count = 0'
         try:
             iteracoes += 1
-            print(f"Processando tweet {iteracoes} de {max_iteracoes}")
+            print(f"Processando tweet {iteracoes} de {max_iteracoes*4}")
             verificar_e_clicar_retry(driver)
-            verificar_link(driver, x_page_politica)
+            verificar_link(driver, link_page)
             find_tweet(driver, count)
             
-            df_tweets_politica = extract_tweet(driver, df_tweets_politica, iteracoes)
+            df_tweets_brasileirao = extract_tweet(driver, df_tweets_brasileirao, iteracoes)
             
-            # Verificar se o df_tweets_politica não está vazio antes de salvar
-            if not df_tweets_politica.empty:
-                print_dataframe(df_tweets_politica, "df_tweets_politica.csv")
+            # Verificar se o df_tweets_brasileirao não está vazio antes de salvar
+            if not df_tweets_brasileirao.empty:
+                print_dataframe(df_tweets_brasileirao, "df_tweets_brasileirao.csv")
             else:
                 print(f"DataFrame vazio após a coleta do tweet {iteracoes}.")
             
@@ -103,3 +61,46 @@ for i in range(max_iteracoes):
     driver.execute_script("window.scrollBy(0, 5000);")
     time.sleep(3)  # Esperar após rolar a página
     verificar_e_clicar_retry(driver)
+
+
+# ######################################################################################## DATA POLITICA ########################################################################################
+
+# driver.maximize_window()
+# time.sleep(10)
+
+# df_tweets_politica = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
+
+# max_iteracoes = 200 # lembrar que a qtde de tweets extraidos é max_iteracoes*5
+# count = 0  
+
+# iteracoes = 0
+# for i in range(max_iteracoes):
+#     for count in range(4):  # Removido 'count = 0'
+#         try:
+#             iteracoes += 1
+#             print(f"Processando tweet {iteracoes} de {max_iteracoes}")
+#             verificar_e_clicar_retry(driver)
+#             verificar_link(driver, x_page_politica)
+#             find_tweet(driver, count)
+            
+#             df_tweets_politica = extract_tweet(driver, df_tweets_politica, iteracoes)
+            
+#             # Verificar se o df_tweets_politica não está vazio antes de salvar
+#             if not df_tweets_politica.empty:
+#                 print_dataframe(df_tweets_politica, "df_tweets_politica.csv")
+#             else:
+#                 print(f"DataFrame vazio após a coleta do tweet {iteracoes}.")
+            
+#             fechar_aba_e_retornar_para_main(driver)
+#             verificar_e_clicar_retry(driver)
+
+#             time.sleep(3)
+#         except Exception as e:
+#             print(f"Erro durante o processamento do tweet {iteracoes}: {e}")
+#             continue  # Continuar para o próximo tweet mesmo em caso de erro
+#         print(driver)
+
+#     time.sleep(5)
+#     driver.execute_script("window.scrollBy(0, 5000);")
+#     time.sleep(3)  # Esperar após rolar a página
+#     verificar_e_clicar_retry(driver)
