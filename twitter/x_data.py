@@ -26,6 +26,7 @@ time.sleep(10)
 
 df_tweets_brasileirao = pd.DataFrame(columns=["Tipo", "Texto", "Chave"])
 
+link_page = x_page()
 
 max_iteracoes = 100 # lembrar que a qtde de tweets principais extraidos é max_iteracoes*4
 count = 0  
